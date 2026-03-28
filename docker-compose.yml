@@ -1,0 +1,9 @@
+services:
+  backend:
+    build: ./backend
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    # ここを streamlit から uvicorn (FastAPI用) に変更します
+    command: uvicorn src.main_api:app --host 0.0.0.0 --port 8000 --reload
