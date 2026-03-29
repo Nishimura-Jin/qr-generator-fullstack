@@ -1,41 +1,34 @@
-import os
 import sqlite3
 
-# DBの場所を /app/history.db （コンテナのルート）に固定することで、
-# Dockerのボリューム機能でデータが消えないようにします。
 DB_PATH = "/app/history.db"
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            url TEXT NOT NULL,
-            label_text TEXT,
-            label_position TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                url TEXT NOT NULL,
+                label_text TEXT,
+                label_position TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
         )
-        """
-    )
-    conn.commit()
-    conn.close()
 
 def save_history(url: str, label_text: str, label_position: str):
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute(
-        "INSERT INTO history (url, label_text, label_position) VALUES (?, ?, ?)",
-        (url, label_text, label_position),
-    )
-    conn.commit()
-    conn.close()
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute(
+            "INSERT INTO history (url, label_text, label_position) VALUES (?, ?, ?)",
+            (url, label_text, label_position),
+        )
 
 def get_history():
-    conn = sqlite3.connect(DB_PATH)
-    rows = conn.execute(
-        "SELECT id, url, label_text, label_position, created_at FROM history ORDER BY created_at DESC LIMIT 20"
-    ).fetchall()
-    conn.close()
+    with sqlite3.connect(DB_PATH) as conn:
+        rows = conn.execute(
+            "SELECT id, url, label_text, label_position, created_at FROM history ORDER BY created_at DESC LIMIT 20"
+        ).fetchall()
+
     return [
         {
             "id": row[0],
@@ -48,7 +41,5 @@ def get_history():
     ]
 
 def delete_history(history_id: int):
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute("DELETE FROM history WHERE id = ?", (history_id,))
-    conn.commit()
-    conn.close()
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute("DELETE FROM history WHERE id = ?", (history_id,))
