@@ -1,7 +1,10 @@
+// 🌐 本番API（Render）
+const BASE_URL = "https://qr-generator-fullstack.onrender.com";
+
 // 共通のAPI通信処理
 const apiFetch = async (url, options = {}, defaultMessage) => {
   try {
-    const response = await fetch(url, options);
+    const response = await fetch(BASE_URL + url, options);
 
     if (!response.ok) {
       let message = defaultMessage;
@@ -21,7 +24,6 @@ const apiFetch = async (url, options = {}, defaultMessage) => {
     return response;
 
   } catch (error) {
-    // fetch自体が失敗した場合（サーバー落ちてる等）
     if (error instanceof TypeError) {
       throw new Error("サーバーに接続できません");
     }
