@@ -62,13 +62,13 @@ async def list_history():
     return get_history()
 
 
-@app.delete("/api/history/{history_id}")
-async def remove_history(history_id: int):
-    delete_history(history_id)
-    return {"ok": True}
-
-
 @app.delete("/api/history")
 async def remove_all_history():
     delete_all_history()
+    return {"ok": True}
+
+
+@app.delete("/api/history/{history_id}")
+async def remove_history(history_id: int):
+    delete_history(history_id)
     return {"ok": True}
