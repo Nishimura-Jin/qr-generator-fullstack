@@ -34,8 +34,9 @@ export default function App() {
       return;
     }
 
-    const urlPattern = /^https?:\/\/.+/;
-    if (!urlPattern.test(url)) {
+    try {
+      new URL(url);
+    } catch {
       setError("有効なURLを入力してください");
       return;
     }
