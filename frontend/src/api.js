@@ -1,7 +1,5 @@
-// 🌐 本番API（Render）
 const BASE_URL = "https://qr-generator-fullstack.onrender.com";
 
-// 共通のAPI通信処理
 const apiFetch = async (url, options = {}, defaultMessage) => {
   try {
     const response = await fetch(BASE_URL + url, options);
@@ -31,8 +29,6 @@ const apiFetch = async (url, options = {}, defaultMessage) => {
   }
 };
 
-
-// QR生成
 export const generateQR = async (url, labelText = "", labelPosition = "Top") => {
   const response = await apiFetch(
     '/api/qr',
@@ -52,8 +48,6 @@ export const generateQR = async (url, labelText = "", labelPosition = "Top") => 
   return URL.createObjectURL(blob);
 };
 
-
-// 履歴取得
 export const fetchHistory = async () => {
   const response = await apiFetch(
     '/api/history',
@@ -64,8 +58,6 @@ export const fetchHistory = async () => {
   return await response.json();
 };
 
-
-// 履歴削除
 export const deleteHistoryItem = async (id) => {
   await apiFetch(
     `/api/history/${id}`,

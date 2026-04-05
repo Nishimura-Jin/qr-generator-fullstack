@@ -2,12 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { deleteHistoryItem, fetchHistory, generateQR } from "./api";
 
 export default function App() {
-  // 入力用
   const [url, setUrl] = useState("");
-
-  // 🔥 追加（確定データ）
   const [generatedUrl, setGeneratedUrl] = useState("");
-
   const [labelText, setLabelText] = useState("");
   const [labelPosition, setLabelPosition] = useState("Top");
   const [qrSrc, setQrSrc] = useState(null);
@@ -17,7 +13,6 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // スクロール用
   const resultRef = useRef(null);
 
   const loadHistory = async () => {
@@ -50,26 +45,21 @@ export default function App() {
 
     try {
       const src = await generateQR(url, labelText, labelPosition);
-
-      // 🔥 ここが最重要
-      setGeneratedUrl(url);   // ← 固定
+      setGeneratedUrl(url);
       setQrSrc(src);
-
       await loadHistory();
 
-      // UX改善（スクロール）
       setTimeout(() => {
         resultRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
 
-    } catch {
-      setError("QRコード生成に失敗しました");
+    } catch (e) {
+      setError(e.message || "QRコード生成に失敗しました");
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔥 修正（生成済みURLをコピー）
   const handleCopy = () => {
     if (!generatedUrl) return;
     navigator.clipboard.writeText(generatedUrl);
@@ -81,11 +71,8 @@ export default function App() {
     setUrl(item.url);
     setLabelText(item.label_text || "");
     setLabelPosition(item.label_position || "Top");
-
-    // 🔥 履歴クリック時は結果リセット
     setQrSrc(null);
     setGeneratedUrl("");
-
     setSidebarOpen(false);
   };
 
@@ -103,7 +90,6 @@ export default function App() {
 
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-blue-100 via-blue-200 to-blue-400" />
 
-      {/* サイドバー */}
       {sidebarOpen && (
         <>
           <div
@@ -124,17 +110,13 @@ export default function App() {
                     onClick={() => handleHistoryClick(item)}
                     className="flex-1 text-left p-3 rounded-xl bg-gray-100 hover:bg-gray-200"
                   >
-                    <p className="text-sm font-medium break-all">
-                      {item.url}
-                    </p>
+                    <p className="text-sm font-medium break-all">{item.url}</p>
                     <p className="text-xs text-gray-500">
                       {item.label_text || "注釈なし"}
                     </p>
                   </button>
 
-                  <button onClick={() => handleDelete(item.id)}>
-                    🗑
-                  </button>
+                  <button onClick={() => handleDelete(item.id)}>🗑</button>
                 </div>
               ))}
             </div>
@@ -157,7 +139,6 @@ export default function App() {
 
         <div className={`grid gap-6 ${qrSrc ? "lg:grid-cols-2" : ""}`}>
 
-          {/* 左 */}
           <div className="bg-white/90 rounded-2xl shadow-xl p-8">
 
             <label className="text-sm font-medium">URL</label>
@@ -187,7 +168,6 @@ export default function App() {
             </button>
           </div>
 
-          {/* 右 */}
           {qrSrc && (
             <div
               ref={resultRef}
@@ -197,7 +177,6 @@ export default function App() {
                 <img src={qrSrc} className="mx-auto w-64" />
               </div>
 
-              {/* 🔥 修正ポイント */}
               <div className="bg-gray-100 p-3 rounded mb-4 text-sm break-all">
                 {generatedUrl}
               </div>

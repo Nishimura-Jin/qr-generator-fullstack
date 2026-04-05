@@ -1,15 +1,23 @@
+import logging
+
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel, HttpUrl
-import logging
 
 from .database import delete_history, get_history, init_db, save_history
 from .qr_service import generate_qr_code
 
-app = FastAPI()
-
 logging.basicConfig(level=logging.INFO)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -18,10 +26,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.on_event("startup")
-async def startup():
-    init_db()
 
 
 class QRRequest(BaseModel):
@@ -32,7 +36,7 @@ class QRRequest(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"status": "FastAPI is running!"}
+    return {"status": "ok"}
 
 
 @app.post("/api/qr")
@@ -43,15 +47,11 @@ async def create_qr(body: QRRequest):
             body.label_text,
             body.label_position
         )
-
         save_history(str(body.url), body.label_text, body.label_position)
-
-        logging.info(f"QR生成: {body.url}")
-
         return Response(content=qr_bytes, media_type="image/png")
 
     except Exception as e:
-        logging.error(f"エラー: {e}")
+        logging.error(f"QR生成エラー: {e}")
         raise HTTPException(status_code=500, detail="QRコードの生成に失敗しました")
 
 

@@ -1,7 +1,10 @@
+import logging
 import os
 from io import BytesIO
+
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
+
 
 def generate_qr_code(url: str, label_text: str = "", label_position: str = "Top") -> bytes:
     qr = qrcode.make(url).convert("RGB")
@@ -23,7 +26,7 @@ def generate_qr_code(url: str, label_text: str = "", label_position: str = "Top"
     try:
         font = ImageFont.truetype(font_path, 24)
     except Exception as e:
-        print(f"Font Load Error: {e}")
+        logging.warning(f"フォントの読み込みに失敗しました: {e}")
         font = ImageFont.load_default()
 
     new_img = Image.new("RGB", (width, height + margin), "white")
