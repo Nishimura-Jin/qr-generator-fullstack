@@ -7,15 +7,11 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 def build_qr_content(qr_type: str, content: str) -> str:
-    if qr_type == "url":
-        return content
-    elif qr_type == "text":
-        return content
-    elif qr_type == "email":
+    if qr_type == "email":
         return f"mailto:{content}"
-    elif qr_type == "phone":
+    if qr_type == "phone":
         return f"tel:{content}"
-    elif qr_type == "wifi":
+    if qr_type == "wifi":
         # content形式: "SSID,PASSWORD,WPA"
         parts = content.split(",")
         ssid = parts[0] if len(parts) > 0 else ""

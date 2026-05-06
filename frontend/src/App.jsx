@@ -335,7 +335,7 @@ export default function App() {
 
         <h1 className="text-4xl font-bold text-center mb-2">QR Code Generator</h1>
         <p className="text-center text-gray-600 mb-8">
-          URLからQRコードを生成できます
+          各種QRコードを生成できます
           {!username && (
             <span className="block text-sm text-blue-600 mt-1">
               ログインすると履歴の保存・有効期限設定が使えます
@@ -446,7 +446,7 @@ export default function App() {
           {qrSrc && (
             <div ref={resultRef} className="bg-white/90 rounded-2xl shadow-xl p-8 text-center">
               <div className="bg-gray-50 p-6 rounded-xl mb-4">
-                <img src={qrSrc} className="mx-auto w-64" />
+                <img src={qrSrc} alt="生成されたQRコード" className="mx-auto w-64" />
               </div>
 
               <div className="bg-gray-100 p-3 rounded mb-4 text-sm break-all">

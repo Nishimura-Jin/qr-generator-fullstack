@@ -69,33 +69,14 @@ export const generateQR = async (qrType, content, labelText = "", labelPosition 
     ...(token && expiresAt ? { expires_at: expiresAt } : {}),
   };
 
-  const headers = {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
+  const response = await apiFetch(
+    "/api/qr",
+    { method: "POST", body: JSON.stringify(body) },
+    "QRコードの生成に失敗しました"
+  );
 
-  try {
-    const response = await fetch(BASE_URL + "/api/qr", {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-      let message = "QRコードの生成に失敗しました";
-      try {
-        const errorData = await response.json();
-        if (errorData?.detail) message += `（${errorData.detail}）`;
-      } catch {}
-      throw new Error(message);
-    }
-
-    const blob = await response.blob();
-    return URL.createObjectURL(blob);
-  } catch (error) {
-    if (error instanceof TypeError) throw new Error("サーバーに接続できません");
-    throw error;
-  }
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
 };
 
 export const fetchHistory = async () => {
@@ -105,10 +86,8 @@ export const fetchHistory = async () => {
 
 export const deleteHistoryItem = async (id) => {
   await apiFetch(`/api/history/${id}`, { method: "DELETE" }, "履歴の削除に失敗しました");
-  return true;
 };
 
 export const deleteAllHistory = async () => {
   await apiFetch("/api/history", { method: "DELETE" }, "履歴の削除に失敗しました");
-  return true;
 };
