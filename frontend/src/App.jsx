@@ -34,10 +34,27 @@ function AuthModal({ onLogin, onClose }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    setUsername("");
+    setPassword("");
+    setError("");
+  };
+
   const handleSubmit = async () => {
     if (!username || !password) {
       setError("ユーザー名とパスワードを入力してください");
       return;
+    }
+    if (mode === "register") {
+      if (password.length < 8) {
+        setError("パスワードは8文字以上で入力してください");
+        return;
+      }
+      if (!/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+        setError("パスワードは英字と数字を両方含めてください");
+        return;
+      }
     }
     setError("");
     setLoading(true);
@@ -70,13 +87,13 @@ function AuthModal({ onLogin, onClose }) {
 
         <div className="flex mb-6 rounded-xl overflow-hidden border">
           <button
-            onClick={() => setMode("login")}
+            onClick={() => handleModeChange("login")}
             className={`flex-1 py-2 text-sm font-medium ${mode === "login" ? "bg-blue-600 text-white" : "bg-white text-gray-600"}`}
           >
             ログイン
           </button>
           <button
-            onClick={() => setMode("register")}
+            onClick={() => handleModeChange("register")}
             className={`flex-1 py-2 text-sm font-medium ${mode === "register" ? "bg-blue-600 text-white" : "bg-white text-gray-600"}`}
           >
             新規登録
@@ -98,6 +115,12 @@ function AuthModal({ onLogin, onClose }) {
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           className="w-full mt-1 mb-4 p-3 rounded-xl border"
         />
+
+        {mode === "register" && (
+          <p className="text-xs text-gray-400 mb-3">
+            8文字以上・英字と数字を含めてください
+          </p>
+        )}
 
         {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
@@ -139,7 +162,9 @@ export default function App() {
       const data = await fetchHistory();
       setHistory(data);
     } catch {
-      setError("履歴の取得に失敗しました");
+      logout();
+      setUsername(null);
+      setHistory([]);
     }
   };
 
@@ -225,6 +250,7 @@ export default function App() {
     logout();
     setUsername(null);
     setHistory([]);
+    setError("");
   };
 
   const handleDeleteAccount = async () => {
@@ -233,6 +259,7 @@ export default function App() {
       await deleteAccount();
       setUsername(null);
       setHistory([]);
+      setError("");
     } catch (e) {
       setError(e.message);
     }
@@ -299,6 +326,15 @@ export default function App() {
                 </div>
               ))}
             </div>
+            {/* アカウント削除（サイドバー下部） */}
+            <div className="p-4 border-t">
+              <button
+                onClick={handleDeleteAccount}
+                className="w-full text-sm text-red-400 hover:text-red-600 py-2"
+              >
+                アカウントを削除
+              </button>
+            </div>
           </aside>
         </>
       )}
@@ -317,9 +353,6 @@ export default function App() {
                 <span className="text-gray-700">{username}</span>
                 <button onClick={handleLogout} className="text-gray-500 hover:text-gray-700">
                   ログアウト
-                </button>
-                <button onClick={handleDeleteAccount} className="text-red-400 hover:text-red-600">
-                  アカウント削除
                 </button>
               </>
             ) : (
