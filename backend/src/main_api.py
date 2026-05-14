@@ -2,10 +2,13 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Header
+from fastapi import Depends, FastAPI, HTTPException, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from .auth import create_access_token, decode_token, hash_password, verify_password
 from .database import (
@@ -22,6 +25,8 @@ from .qr_service import generate_qr_code
 
 logging.basicConfig(level=logging.INFO)
 
+limiter = Limiter(key_func=get_remote_address)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -30,6 +35,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -114,7 +121,9 @@ def remove_user(current_user: dict = Depends(get_current_user)):
 
 # ---- QRコード生成（ゲスト・ログイン両対応） ----
 @app.post("/api/qr")
+@limiter.limit("10/minute", exempt_when=lambda request: _is_authenticated(request))
 async def create_qr(
+    request: Request,
     body: QRRequest,
     current_user: Optional[dict] = Depends(get_current_user_optional),
 ):
@@ -138,6 +147,14 @@ async def create_qr(
     except Exception as e:
         logging.error(f"QR生成エラー: {e}")
         raise HTTPException(status_code=500, detail="QRコードの生成に失敗しました")
+
+
+def _is_authenticated(request: Request) -> bool:
+    auth = request.headers.get("authorization", "")
+    if not auth.startswith("Bearer "):
+        return False
+    token = auth.removeprefix("Bearer ")
+    return bool(decode_token(token))
 
 
 # ---- 履歴管理（ログイン必須） ----
